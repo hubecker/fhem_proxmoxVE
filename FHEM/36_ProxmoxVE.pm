@@ -197,7 +197,7 @@ sub Define {
   CommandAttr(undef,"$name room 01_ProxmoxVE");
   CommandAttr(undef,"$name event-on-update-reading .*");
 
-  Log3 $name, 1,"[$sub_name] pve: 0:".$a[0]." 1:".$a[1]." 2:".$a[2];
+  # Log3 $name, 4,"[$sub_name] pve: 0:".$a[0]." 1:".$a[1]." 2:".$a[2];
 
   # Versionsinformationen setzen
   setVersionInfo($hash);
@@ -251,8 +251,6 @@ sub periodicCall {
   my $new;
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] name: $name";
-
   if(!$interval) {
       $hash->{MODE} = "Manual";
   } else {
@@ -266,7 +264,6 @@ sub periodicCall {
   return if(!$interval);
 
   if($hash->{CREDENTIALS} && !IsDisabled($name)) {
-      Log3 $name, 1,"[$sub_name] call CommandSet name: $name";
       # CommandSet(undef, "$name statusRequest");
       CommandGet(undef, "$name statusRequest");                      # Status initial abrufen
                                                       # Eintr�ge aller gew�hlter Kalender oder Aufgabenlisten abrufen (in Queue stellen)
@@ -299,7 +296,7 @@ return;
 }
 
 #################################################################
-# Wenn ein Ger�t in FHEM gel�scht wird, wird zuerst die Funktion
+# Wenn ein Gerät in FHEM gelöscht wird, wird zuerst die Funktion
 # X_Undef aufgerufen um offene Verbindungen zu schlie�en,
 # anschlie�end wird die Funktion X_Delete aufgerufen.
 # Funktion: Aufr�umen von dauerhaften Daten, welche durch das
@@ -335,17 +332,15 @@ sub PVE_getPVE ($) {
   my $host     = $hash->{HOST};
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] name: $name host: $host";
-
   # Credentials abrufen
   my ($success, $username, $password) = getcredentials($hash,0,"credentials");
 
   unless ($success) {
-    Log3($name, 2, "$name - Credentials couldn't be obtained successfully - make sure you've set it with \"set $name credentials <username> <password>\"");
+    Log3 $name, 2, "$name - Credentials couldn't be obtained successfully - make sure you've set it with \"set $name credentials <username> <password>\"";
     return;
   }
 
-  Log3 $name, 1,"[$sub_name] user: $username pass: $password";
+  Log3 $name, 4,"[$sub_name] user: $username pass: $password";
 
   $PVE = Net::Proxmox::VE->new(
    	  	host     => $host,
@@ -582,7 +577,7 @@ sub PVE_getClusterStatus($) {
 
     # my $cluster = $PVE->get_cluster_status();
     my $cluster = $PVE->get('/cluster/status');
-    # Log3 $name, 1,"[$sub_name]: " . Dumper(encode_json($cluster));
+    # Log3 $name, 4,"[$sub_name]: " . Dumper(encode_json($cluster));
     return $cluster;
 }
 
@@ -601,13 +596,13 @@ sub ProxmoxVE_getClusterStatus($) {
   my $name = $hash->{NAME};
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] begin";
+  Log3 $name, 4,"[$sub_name] begin";
 
   my $cluster = PVE_getClusterStatus($hash) ;
-  # Log3 $name, 1,"[$sub_name] cluster: " . Dumper(encode_json($cluster));
+  # Log3 $name, 4,"[$sub_name] cluster: " . Dumper(encode_json($cluster));
 
   my $version = PVE_getVersion($hash);
-  # Log3 $name, 1,"[$sub_name] version: " . Dumper(encode_json($version));
+  # Log3 $name, 4,"[$sub_name] version: " . Dumper(encode_json($version));
 
   my $nodes   = PVE_getNode($hash);
   my $lxc     = PVE_getContainer($hash);
@@ -625,7 +620,7 @@ sub ProxmoxVE_getClusterStatus($) {
   my $mycluster = "";
   foreach my $item( @$cluster ) {
      if ($item->{type} eq "cluster") {
-        Log3 $name, 1,"[$sub_name] Cluster: " . $item->{id} . " " . $item->{name};
+        Log3 $name, 4,"[$sub_name] Cluster: " . $item->{id} . " " . $item->{name};
         $mycluster = $item;
      }
   }
@@ -718,7 +713,7 @@ sub ProxmoxVE_AutoCreate($) {
   my $name = $hash->{NAME};
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] begin";
+  Log3 $name, 4,"[$sub_name] begin";
 
   # my $resources = PVE_getNodes($hash);
   my $resources = PVE_getResources($hash);
@@ -734,7 +729,7 @@ sub ProxmoxVE_AutoCreate($) {
       # ProxmoxVE_definestorage($hash,$resource);
     }
   }
-  Log3 $name, 1,"[$sub_name] end";
+  Log3 $name, 4,"[$sub_name] end";
 }
 
 sub ProxmoxVE_definenode($$) {
@@ -752,23 +747,23 @@ sub ProxmoxVE_definenode($$) {
 
   my $devname = "N_". $id;
   my $define= "$devname ProxmoxVENode  $resource->{id} $id";
-  Log3 $name, 1,"[$sub_name] DEFINE: " . $define;
+  Log3 $name, 4,"[$sub_name] DEFINE: " . $define;
 
 #    if( defined($modules{$hash->{TYPE}}{defptr}{"N_$id}"}) ) {
 #      my $d = $modules{$hash->{TYPE}}{defptr}{"N_$id}"};
 #      $d->{association} = $resource->{association} if($resource->{association});
 #
-#      Log3 $name, 1,"[$sub_name] $name: device '$resource->{id}' already defined as $d->{NAME}" if( defined($d) && $d->{NAME} ne $name );
+#      Log3 $name, 4,"[$sub_name] $name: device '$resource->{id}' already defined as $d->{NAME}" if( defined($d) && $d->{NAME} ne $name );
 #      next;
 #    }
 
 
 
-  Log3 $name, 1,"[$sub_name] create new device '$devname' for device '$id'";
+  Log3 $name, 4,"[$sub_name] create new device '$devname' for device '$id'";
 
   my $cmdret= CommandDefine(undef,$define);
   if($cmdret) {
-    Log3 $name, 1,"[$sub_name] Autocreate: An error occurred while creating device for id '$id': $cmdret";
+    Log3 $name, 4,"[$sub_name] Autocreate: An error occurred while creating device for id '$id': $cmdret";
   } else {
     $cmdret= CommandSetstate(undef, "$devname $resource->{status}");
 
@@ -797,7 +792,7 @@ sub ProxmoxVE_definenode($$) {
   }
   CommandSave(undef,undef);
 
-  Log3 $name, 1,"[$sub_name] end";
+  Log3 $name, 4,"[$sub_name] end";
 
   return undef;
 }
@@ -815,9 +810,9 @@ sub ProxmoxVE_defineqemu($$) {
 
   my $devname = "N_". $id;
   my $define= "$devname ProxmoxVENode  $resource->{id} $id";
-  Log3 $name, 1,"[$sub_name] DEFINE: " . $define;
+  Log3 $name, 4,"[$sub_name] DEFINE: " . $define;
 
-  Log3 $name, 2, "$name: create new device '$devname' for device '$id'";
+  Log3 $name, 1, "$name: create new device '$devname' for device '$id'";
   my $cmdret= CommandDefine(undef,$define);
   if($cmdret) {
     Log3 $name, 1,"[$sub_name] Autocreate: An error occurred while creating device for id '$id': $cmdret";
@@ -1013,7 +1008,7 @@ sub PVE_getContainerbyNode($$) {
   my ($hash,$node) = @_;
   my $name = $hash->{NAME};
   my $sub_name = (caller(0))[3];
-  Log3 $name, 1,"[$sub_name] $name nodename: $node";
+  Log3 $name, 4,"[$sub_name] $name nodename: $node";
 
   my $resources = $PVE->get('/nodes/'.$node.'/lxc');
 
