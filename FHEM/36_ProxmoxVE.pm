@@ -120,16 +120,16 @@ BEGIN {
 
 # Versions History intern
 my %vNotesIntern = (
-  "1.0.0"  => "06.04.2020  initial "
+  "1.0.0"  => "20.12.2020  initial "
 );
 
 # Versions History extern
 my %vNotesExtern = (
-  "1.0.0"  => "06.04.2020  initial "
+  "1.0.0"  => "20.12.2020  initial "
 );
 
 #-- globals on start
-my $module_version = "0.3.2 Beta";
+my $module_version = "0.3.3 Beta";
 
 my $PVE = "";
 my $debug    = 0;

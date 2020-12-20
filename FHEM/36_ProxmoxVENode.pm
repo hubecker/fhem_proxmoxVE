@@ -23,7 +23,7 @@
 #  Changelog:
 
 package main;
-my $version="0.3.2 BETA";
+my $version="0.3.3 BETA";
 
 use strict;
 use warnings;
