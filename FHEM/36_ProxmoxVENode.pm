@@ -53,16 +53,10 @@ sub ProxmoxVENode_Define($$) {
   my $name = $a[0];
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] begin";
-
   return "Wrong syntax: use define <name> ProxmoxVENode <id> <clientName>" if(int(@a) < 2);
-
-  Log3 $name, 1,"[$sub_name] Name: $name DEF: $def";
 
   my $id = $a[2];
   my $address = $a[3];
-
-  Log3 $name, 1,"[$sub_name] ID: $id Address: $address";
 
   if(defined($modules{ProxmoxVENode}{defptr}{$address})){
       return "Client with name $address already defined in ".($modules{ProxmoxVENode}{defptr}{$address}{NAME});
@@ -92,8 +86,6 @@ sub ProxmoxVENode_Define($$) {
 
   InternalTimer(gettimeofday()+$hash->{INTERVAL}, "ProxmoxVENode_statusRequest", $hash, 0);
 
-  Log3 $name, 1,"[$sub_name] end";
-
   return undef;
 }
 
@@ -107,8 +99,6 @@ sub ProxmoxVENode_statusRequest($) {
 
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] Name: $name ID: $id";
-
   InternalTimer(gettimeofday()+60, "ProxmoxVENode_statusRequest", $hash, 1);
 
   ProxmoxVENode_getNodeStatus($hash,$id);
@@ -120,7 +110,6 @@ sub Proxmox_getResourcebyId($$) {
   my ($hash, $id) = @_;
   my $name = $hash->{NAME};
   my $sub_name = (caller(0))[3];
-  Log3 $name, 1,"[$sub_name] id: $id";
 
   my $PVE = $hash->{IODev}->{PVE};
   my $resources = $PVE->get('/cluster/resources');
@@ -145,7 +134,6 @@ sub Proxmox_getStatus($) {
   my $vmid =ReadingsVal( $name, "vmid", 0 );
   my $type =ReadingsVal( $name, "type", 0 );
   my $api = "/nodes/$node/$type/$vmid/status/current";
-  Log3 $name, 1,"[$sub_name] api: $api";
 
   my $PVE = $hash->{IODev}->{PVE};
   my $status = $PVE->get($api);
@@ -158,10 +146,8 @@ sub ProxmoxVENode_getNodeStatus($$) {
   my $name = $hash->{NAME};
   my $sub_name = (caller(0))[3];
 
-  Log3 $name, 1,"[$sub_name] begin Name: $name ID: $id";
-
   my $node =Proxmox_getResourcebyId($hash,$id) ;
-  Log3 $name, 1,"[$sub_name] Node: " . Dumper(encode_json($node));
+  Log3 $name, 4,"[$sub_name] Node: " . Dumper(encode_json($node));
 
   readingsBeginUpdate($hash);
   readingsSingleUpdate($hash, "cpu", $node->{cpu}, "N/A");
@@ -189,7 +175,6 @@ sub ProxmoxVENode_Undef($$) {
 
 	RemoveInternalTimer($hash);
 
-    Log3 $name, 1,"[$sub_name] - executed.".$hash->{CODE};
 	if(defined($hash->{CODE}) && defined($modules{ProxmoxVENode}{defptr}{$hash->{CODE}})){
 		delete($modules{ProxmoxVENode}{defptr}{$hash->{CODE}});
 	}
@@ -224,51 +209,41 @@ sub ProxmoxVENode_Set ($$@) {
     my $vmid =ReadingsVal( $name, "vmid", 0 );
     my $type =ReadingsVal( $name, "type", 0 );
     my $api = "/nodes/$node/$type/$vmid/status/$cmd";
-    # Log3 $name, 1,"[$sub_name] api: $api";
 
     if ( $cmd eq 'start' ) {
      my $status = PVE_getStatus($hash);
      if ( $status eq 'running' ) {
-       Log3 $name, 1,"[$sub_name] already running";
        return "$vmid already running";
      } else {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $ret";
       return undef;
      }
     } elsif ( lc $cmd eq "stop" ) {
      my $status = PVE_getStatus($hash);
      if ( $status eq 'stopped' ) {
-       Log3 $name, 1,"[$sub_name] already stopped";
        return "$vmid already stopped";
      } else {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $api";
-      return undef;
+       return undef;
      }
     } elsif ( lc $cmd eq "reboot" ) {
      my $status = Proxmox_getStatus($hash);
      if ( $status eq 'stopped' ) {
-       Log3 $name, 1,"[$sub_name] already stopped, no reboot";
        return "$vmid already stopped, no reboot possible";
      } else {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $ret";
       return undef;
      }
       return undef;
     } elsif ( lc $cmd eq "shutdown" ) {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $ret";
-      return undef;
+       return undef;
     } elsif ( lc $cmd eq "resume" ) {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $ret";
-      return undef;
+       return undef;
     } elsif ( lc $cmd eq "suspend" ) {
        my $ret = $PVE->post($api);
-       Log3 $name, 1,"[$sub_name] api: $ret";
-      return undef;
+       return undef;
     }
     return "Unknown argument $cmd, choose one of $list";
   }
@@ -296,8 +271,6 @@ sub ProxmoxVENode_Get ($@) {
   my $arg2 = shift @a;
   my $ret = "";
   my $getlist;
-
-  Log3 $name, 1,"[$sub_name] name: $name opt: $opt";
 
   $getlist = "Unknown argument $opt, choose one of ".
                    "statusRequest:noArg ".
